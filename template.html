@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clasroom</title>
+    <style>
+        :root {
+            --taskbar-bg: rgba(30, 30, 30, 0.85);
+            --win-bg: #ffffff;
+            --accent: #0078d7;
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100%; overflow: hidden;
+            font-family: 'Segoe UI', sans-serif;
+            background: #2c3e50; /* Solid color for 2026 minimalist aesthetic */
+        }
+
+        #desktop {
+            width: 100vw; height: calc(100vh - 45px);
+            position: relative;
+            display: flex; flex-direction: column; flex-wrap: wrap; align-content: flex-start;
+        }
+
+        /* App Icon Styling */
+        .app-icon {
+            width: 90px; height: 100px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: white; cursor: pointer; border-radius: 8px;
+            transition: background 0.2s; margin: 10px;
+        }
+        .app-icon:hover { background: rgba(255, 255, 255, 0.15); }
+        .app-icon span { font-size: 2.5rem; margin-bottom: 5px; }
+        .app-icon label { font-size: 0.85rem; pointer-events: none; }
+
+        /* Window Styling */
+        .window {
+            position: absolute; width: 450px; height: 320px;
+            background: var(--win-bg); border-radius: 8px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+        .window-header {
+            background: #f3f3f3; padding: 12px; cursor: move;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #ddd;
+        }
+        .window-content { padding: 20px; flex: 1; overflow: auto; color: #333; }
+        .close-btn { color: #ff5f56; cursor: pointer; font-size: 1.2rem; font-weight: bold; }
+
+        /* Taskbar */
+        #taskbar {
+            height: 45px; background: var(--taskbar-bg); backdrop-filter: blur(15px);
+            position: fixed; bottom: 0; width: 100%;
+            display: flex; align-items: center; padding: 0 15px; color: white; z-index: 10000;
+        }
+        .start-btn { font-weight: bold; margin-right: 20px; cursor: pointer; color: var(--accent); }
+        #clock { margin-left: auto; font-variant-numeric: tabular-nums; }
+    </style>
+</head>
+<body>
+
+<div id="desktop"></div>
+
+<div id="taskbar">
+    <div class="start-btn">System 2026</div>
+    <div id="clock"></div>
+</div>
+
+<script>
+    let zIndex = 100;
+
+    // 1. APP REGISTRY SYSTEM
+    const Apps = {
+        registry: [],
+
+        // Function to register and draw a new app
+        add: function(name, icon, onOpen) {
+            const app = { name, icon, onOpen };
+            this.registry.push(app);
+            this.renderIcon(app);
+        },
+
+        renderIcon: function(app) {
+            const desktop = document.getElementById('desktop');
+            const div = document.createElement('div');
+            div.className = 'app-icon';
+            div.innerHTML = `<span>${app.icon}</span><label>${app.name}</label>`;
+            div.onclick = () => app.onOpen();
+            desktop.appendChild(div);
+        }
+    };
+
+    // 2. CORE WINDOW ENGINE
+    function openWindow(title, htmlContent) {
+        const win = document.createElement('div');
+        win.className = 'window';
+        win.style.left = '150px';
+        win.style.top = '100px';
+        win.style.zIndex = ++zIndex;
+
+        win.innerHTML = `
+            <div class="window-header">
+                <strong>${title}</strong>
+                <span class="close-btn" onclick="this.closest('.window').remove()">●</span>
+            </div>
+            <div class="window-content">${htmlContent}</div>
+        `;
+
+        document.getElementById('desktop').appendChild(win);
+        initDrag(win);
+        win.onmousedown = () => win.style.zIndex = ++zIndex;
+    }
+
+    function initDrag(el) {
+        let x = 0, y = 0, nx = 0, ny = 0;
+        const header = el.querySelector('.window-header');
+        header.onmousedown = (e) => {
+            e.preventDefault();
+            nx = e.clientX; ny = e.clientY;
+            document.onmousemove = (e) => {
+                x = nx - e.clientX; y = ny - e.clientY;
+                nx = e.clientX; ny = e.clientY;
+                el.style.top = (el.offsetTop - y) + "px";
+                el.style.left = (el.offsetLeft - x) + "px";
+            };
+            document.onmouseup = () => document.onmousemove = null;
+        };
+    }
+
+    // 3. DEFINE YOUR APPS HERE
+    // You can now add any app logic simply by calling Apps.add()
+
+    Apps.add("Settings", "⚙️", () => {
+        openWindow("System Settings", `
+            <p>Theme: <b>Dark Mode</b></p>
+            <button onclick="document.body.style.background='#8e44ad'">Change Background</button>
+        `);
+    });
+
+    Apps.add("Terminal", "💻", () => {
+        openWindow("Terminal", `
+            <div style="background:#000; color:#0f0; padding:10px; height:100%; font-family:monospace;">
+                root@js-os:~$ _
+            </div>
+        `);
+    });
+
+    Apps.add("Calculator", "🔢", () => {
+        openWindow("Calculator", `
+            <input type="text" id="calc-in" style="width:100%; margin-bottom:10px;">
+            <button onclick="document.getElementById('calc-in').value = eval(document.getElementById('calc-in').value)">Calculate</button>
+        `);
+    });
+
+    Apps.add("Game center", "🎮", () => {
+        openWindow("Calculator", `
+            <input type="text" id="calc-in" style="width:100%; margin-bottom:10px;">
+            <button onclick="document.getElementById('calc-in').value = eval(document.getElementById('calc-in').value)">Calculate</button>
+        `);
+    });
+
+    
+
+
+
+
+
+
+Apps.add("Minesweeper", "💣", () => {
+    // Unique ID for this instance to allow multiple games
+    const gameId = 'ms-' + Date.now();
+    
+    openWindow("Minesweeper", `
+        <div id="${gameId}" style="user-select:none;">
+            <div style="margin-bottom:10px; display:flex; justify-content:space-between;">
+                <span>Mines: 10</span>
+                <button onclick="window.initMinesweeper('${gameId}')">New Game</button>
+            </div>
+            <div class="ms-grid" style="display:grid; grid-template-columns:repeat(10, 25px); background:#bdbdbd; border:3px inset #eee; padding:2px;"></div>
+        </div>
+        <style>
+            .ms-cell { width:25px; height:25px; border:2px outset #eee; background:#bdbdbd; text-align:center; line-height:25px; font-weight:bold; cursor:pointer; }
+            .ms-cell.revealed { border:1px solid #7b7b7b; background:#c0c0c0; cursor:default; }
+            .ms-cell.mine { background:red; }
+        </style>
+    `);
+
+    // Global function to initialize or restart the game
+    window.initMinesweeper = (containerId) => {
+        const container = document.getElementById(containerId).querySelector('.ms-grid');
+        const size = 10, minesCount = 10;
+        let grid = [], cells = [];
+        container.innerHTML = '';
+
+        // 1. Create Grid Logic
+        for (let r = 0; r < size; r++) {
+            grid[r] = [];
+            for (let c = 0; c < size; c++) {
+                const cellEl = document.createElement('div');
+                cellEl.className = 'ms-cell';
+                cellEl.onclick = () => reveal(r, c);
+                cellEl.oncontextmenu = (e) => { e.preventDefault(); flag(cellEl); };
+                container.appendChild(cellEl);
+                grid[r][c] = { isMine: false, revealed: false, count: 0, el: cellEl };
+            }
+        }
+
+        // 2. Place Mines
+        let placed = 0;
+        while (placed < minesCount) {
+            let r = Math.floor(Math.random() * size), c = Math.floor(Math.random() * size);
+            if (!grid[r][c].isMine) {
+                grid[r][c].isMine = true;
+                placed++;
+            }
+        }
+
+        // 3. Calculate Numbers
+        for (let r = 0; r < size; r++) {
+            for (let c = 0; c < size; c++) {
+                if (grid[r][c].isMine) continue;
+                let count = 0;
+                for(let i=-1; i<=1; i++) for(let j=-1; j<=1; j++) {
+                    if (grid[r+i]?.[c+j]?.isMine) count++;
+                }
+                grid[r][c].count = count;
+            }
+        }
+
+        function flag(el) { if(!el.classList.contains('revealed')) el.innerText = el.innerText === '🚩' ? '' : '🚩'; }
+
+        function reveal(r, c) {
+            const cell = grid[r]?.[c];
+            if (!cell || cell.revealed) return;
+            cell.revealed = true;
+            cell.el.classList.add('revealed');
+            
+            if (cell.isMine) {
+                cell.el.classList.add('mine');
+                cell.el.innerText = '💣';
+                alert("Game Over!");
+                return;
+            }
+
+            if (cell.count > 0) {
+                cell.el.innerText = cell.count;
+                cell.el.style.color = ['blue','green','red','darkblue','brown','cyan','black','grey'][cell.count-1];
+            } else {
+                // Recursive Flood Fill
+                for(let i=-1; i<=1; i++) for(let j=-1; j<=1; j++) reveal(r+i, c+j);
+            }
+        }
+    };
+
+    window.initMinesweeper(gameId);
+});
+
+
+
+
+
+    // 4. UTILITIES
+    setInterval(() => {
+        document.getElementById('clock').innerText = new Date().toLocaleTimeString();
+    }, 1000);
+</script>
+
+</body>
+</html>
